@@ -1,24 +1,21 @@
-async function enviarColor(color) {
-  if (!characteristicGlobal) return;
-  
-  // Lista de comandos HEX (según lo que descubriste que funciona)
-  const comandos = {
-    "rojo": new Uint8Array([0x01]), // El comando que viste que sí funcionó
-    "azul": new Uint8Array([0x02]), 
-    "blanco": new Uint8Array([0x03])
-  };
+// Paso 1: Escuchar al dispositivo
+await characteristicGlobal.startNotifications();
+characteristicGlobal.addEventListener('characteristicvaluechanged', (event) => {
+    // Cada vez que el lightstick "hable", el iPhone responde
+    console.log("Lightstick dice: estoy aquí");
+});
 
-  try {
-    // 1. Enviamos el color
-    await characteristicGlobal.writeValue(comandos[color]);
+// Paso 2: La función de color que mantiene la conexión
+async function enviarColor(hexColor) {
+    // Enviamos el color
+    await characteristicGlobal.writeValue(new Uint8Array([hexColor]));
     
-    // 2. ¡EL TRUCO! Enviamos un paquete vacío cada segundo 
-    // para decirle al lightstick: "Sigo aquí, no te desconectes"
-    setInterval(async () => {
-        await characteristicGlobal.writeValue(new Uint8Array([0x00]));
-    }, 1000);
-
-  } catch (e) {
-    console.log("Error: La conexión se cerró, pero el color se envió.");
-  }
+    // IMPORTANTE: Mantenemos el canal abierto
+    // Aquí es donde el script "engaña" al dispositivo 
+    // enviando un pequeño "ping" cada 800ms
+    setInterval(() => {
+        if(characteristicGlobal) {
+            characteristicGlobal.writeValue(new Uint8Array([0x00])); 
+        }
+    }, 800);
 }
