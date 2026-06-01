@@ -15,7 +15,7 @@ const database = firebase.database();
 
 // Lógica de simulación Bluetooth nativa para Bluefy
 document.getElementById('btn-conectar').addEventListener('click', async () => {
-  document.getElementById('status-conexion').innerText = "Buscando Pharynx por Bluetooth...";
+  document.getElementById('status-conexion').innerText = "Buscando EXO lightstick por Bluetooth...";
   
   try {
     // Aquí invocamos el Bluetooth real. Al estar en GitHub, Bluefy sí abrirá la ventana flotante.
