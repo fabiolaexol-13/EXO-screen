@@ -21,9 +21,12 @@ document.getElementById('btn-conectar').addEventListener('click', async () => {
     const server = await device.gatt.connect();
     const service = await server.getPrimaryService('0000ff00-0000-1000-8000-00805f9b34fb');
     characteristicGlobal = await service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
-    document.getElementById('status-conexion').innerText = "¡CONECTADO!";
+    
+    // Comando de "despertar"
+    await characteristicGlobal.writeValue(new Uint8Array([0x55, 0x01, 0x00, 0x00, 0x00]));
+    document.getElementById('status-conexion').innerText = "¡CONECTADO Y LISTO!";
   } catch (error) {
-    document.getElementById('status-conexion').innerText = "Error de conexión";
+    document.getElementById('status-conexion').innerText = "Error: Intenta de nuevo";
   }
 });
 
@@ -38,6 +41,6 @@ async function enviarColor(color) {
   try {
     await characteristicGlobal.writeValue(comandos[color]);
   } catch (e) {
-    document.getElementById('status-conexion').innerText = "Error al cambiar color";
+    console.log("Error al enviar color");
   }
 }
