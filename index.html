@@ -1,58 +1,33 @@
-// Configuración de tu proyecto
-const firebaseConfig = {
-  apiKey: "AIzaSyATkiugT6y_B8chGR0fhrj-sWXs",
-  authDomain: "fc-kkbsng13-01.firebaseapp.com",
-  databaseURL: "https://fc-kkbsng13-01-default-rtdb.firebaseio.com/",
-  projectId: "fc-kkbsng13-01",
-  storageBucket: "fc-kkbsng13-01.appspot.com",
-  messagingSenderId: "535419100872",
-  appId: "1:535419100872:web:68c50a5cfb3436bf6441b4"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-let dispositivoGlobal = null;
-let characteristicGlobal = null;
-
-document.getElementById('btn-conectar').addEventListener('click', async () => {
-  document.getElementById('status-conexion').innerText = "Buscando EXO Lightstick...";
-  
-  try {
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: 'EXO' }], // Filtro para buscar tu lightstick
-      optionalServices: ['0000ff00-0000-1000-8000-00805f9b34fb']
-    });
-    
-    dispositivoGlobal = device;
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService('0000ff00-0000-1000-8000-00805f9b34fb');
-    characteristicGlobal = await service.getCharacteristic('0000ff01-0000-1000-8000-00805f9b34fb');
-    
-    document.getElementById('status-conexion').innerText = "¡CONECTADO CON ÉXITO!";
-  } catch (error) {
-    document.getElementById('status-conexion').innerText = "Error: " + error.message;
-  }
-});
-
-// Función que traduce el nombre del color a un comando hexadecimal de luz
-async function enviarColor(color) {
-  if (!characteristicGlobal) return;
-  
-  // Estos son los comandos estándar de color (ajustados para Pharynx)
-  const comandos = {
-    "rojo": new Uint8Array([0x55, 0x01, 0xFF, 0x00, 0x00]),
-    "azul": new Uint8Array([0x55, 0x01, 0x00, 0x00, 0xFF]),
-    "morado": new Uint8Array([0x55, 0x01, 0xFF, 0x00, 0xFF]),
-    "blanco": new Uint8Array([0x55, 0x01, 0xFF, 0xFF, 0xFF])
-  };
-  
-  await characteristicGlobal.writeValue(comandos[color]);
-}
-
-database.ref('colorEvento').on('value', (snapshot) => {
-  const datos = snapshot.val();
-  if (datos) {
-    enviarColor(datos.colorActivo);
-  }
-});
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXO Lightstick Controller</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #111; color: white; text-align: center; padding: 20px; }
+        button { padding: 15px 30px; margin: 10px; border-radius: 10px; border: none; font-size: 16px; width: 80%; }
+        #btn-conectar { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <h1>EXO Lightstick Controller 🌟</h1>
+    <p>Screening Especial: Baekhyun 'Lonsdaleite'</p>
+    <div style="background: #222; padding: 20px; border-radius: 15px;">
+        <h3>CONEXIÓN DE ASISTENTES</h3>
+        <p>Enciende tu Pharynx en modo Bluetooth y presiona:</p>
+        <button id="btn-conectar">🔗 Conectar mi EXO Lightstick</button>
+        <p id="status-conexion">Estado: Esperando conexión...</p>
+    </div>
+    <div style="margin-top: 20px;">
+        <h3>PANEL DE CONTROL GENERAL</h3>
+        <button onclick="enviarColor('blanco')">Blanco Cosmico</button>
+        <button onclick="enviarColor('rojo')" style="background:red;">Rojo</button>
+        <button onclick="enviarColor('azul')" style="background:blue;">Azul</button>
+        <button onclick="enviarColor('morado')" style="background:purple;">Morado</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
